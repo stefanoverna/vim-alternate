@@ -1,0 +1,13 @@
+*alternate.txt*  Find or create alternate files
+
+Author:  Stefano Verna <http://stefanoverna.com/>
+License: Same terms as Vim itself (see |license|)
+
+This plugin is only available if 'compatible' is not set.
+
+INTRODUCTION                                    *alternate*
+
+WIP
+
+ vim:tw=78:et:ft=help:norl:
+
