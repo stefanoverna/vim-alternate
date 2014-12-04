@@ -2,16 +2,14 @@
 " Author:      Stefano Verna <http://stefanoverna.com/>
 " Version:     1.0.1
 
-function! s:NormalFile(file)
-  echo a:file
-  let matches = matchlist(a:file, 'spec/\([^/]\+\)\(.*\)$')
+function! s:NormalFile(file, normalExt, specExt, appDirs, specDir)
+  let matches = matchlist(a:file, a:specDir . '\([^/]\+\)\(.*\)$')
 
   if len(matches) ># 2
     let mainDir = matches[1]
-    let tailPath = substitute(matches[2], '_spec.rb', '.rb', 'g')
+    let tailPath = substitute(matches[2], a:specExt, a:normalExt, 'g')
 
-    let rootDirs = [ 'app/', 'lib/' ]
-    for rootDir in rootDirs
+    for rootDir in a:appDirs
       let completeDir = rootDir . mainDir
 
       if isdirectory(completeDir)
@@ -23,15 +21,8 @@ function! s:NormalFile(file)
   return ''
 endfunction
 
-function! s:SpecFile(file)
-  let substitutions =
-    \ [
-    \   [ '\vapp/(.*)\.rb', 'spec/\1_spec.rb' ],
-    \   [ '\vlib/(.*)\.rb', 'spec/\1_spec.rb' ],
-    \   [ '\v(.*)\.rb', 'spec/\1_spec.rb' ]
-    \ ]
-
-  for substitution in substitutions
+function! s:SpecFile(file, substitutions)
+  for substitution in a:substitutions
     let result = matchstr(a:file, substitution[0])
     if len(result)
       let alternateFile = substitute(a:file, substitution[0], substitution[1], "g")
@@ -50,10 +41,28 @@ endfunction
 
 function! OpenAlternateFile()
   let file = expand('%')
+  echom file
   if file =~# '_spec.rb$'
-    call s:Open(s:NormalFile(file))
+    call s:Open(s:NormalFile(file, '.rb', '_spec.rb', ['app/', 'lib/'], 'spec/'))
+  elseif file =~# '_test.js$'
+    call s:Open(s:NormalFile(file, '.js', '_test.js', ['app/scripts/'], 'test/'))
   elseif file =~# '.rb$'
-    call s:Open(s:SpecFile(file))
+    let substitutions =
+      \ [
+      \   [ '\vapp/(.*)\.rb', 'spec/\1_spec.rb' ],
+      \   [ '\vlib/(.*)\.rb', 'spec/\1_spec.rb' ],
+      \   [ '\v(.*)\.rb', 'spec/\1_spec.rb' ]
+      \ ]
+
+    call s:Open(s:SpecFile(file, substitutions))
+  elseif file =~# '.js$'
+    let substitutions =
+      \ [
+      \   [ '\vapp/scripts/(.*)\.js', 'test/\1_test.js' ],
+      \   [ '\v(.*)\.js', 'test/\1_test.js' ]
+      \ ]
+
+    call s:Open(s:SpecFile(file, substitutions))
   else
     echom "No alternate found!"
   end
